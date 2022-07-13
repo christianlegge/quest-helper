@@ -43,9 +43,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -78,6 +81,7 @@ public class QuestHelperPanel extends PluginPanel
 
 	private final JPanel allDropdownSections = new JPanel();
 	private final JComboBox<Enum> filterDropdown, difficultyDropdown, orderDropdown;
+	private final JCheckBox debugCheckbox;
 
 	private final IconTextField searchBar = new IconTextField();
 	private final FixedWidthPanel questListPanel = new FixedWidthPanel();
@@ -284,17 +288,27 @@ public class QuestHelperPanel extends PluginPanel
 		questListPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 		showMatchingQuests("");
 
+		// Debug
+		debugCheckbox = new JCheckBox();
+		debugCheckbox.addItemListener(e ->
+		{
+			questHelperPlugin.getConfigManager().setConfiguration("questhelper", "enableDebugVarbits",
+					e.getStateChange() == ItemEvent.SELECTED);
+		});
+		JPanel debugPanel = makeOptionPanel(debugCheckbox, "Enable debug varbits");
+		debugPanel.setBorder(new EmptyBorder(0, 10, 0, 10));
+
 		// Filters
 		filterDropdown = makeNewDropdown(QuestHelperConfig.QuestFilter.displayFilters(), "filterListBy");
-		JPanel filtersPanel = makeDropdownPanel(filterDropdown, "Filters");
+		JPanel filtersPanel = makeOptionPanel(filterDropdown, "Filters");
 		filtersPanel.setPreferredSize(new Dimension(PANEL_WIDTH, DROPDOWN_HEIGHT));
 
 		difficultyDropdown = makeNewDropdown(QuestDetails.Difficulty.values(), "questDifficulty");
-		JPanel difficultyPanel = makeDropdownPanel(difficultyDropdown, "Difficulty");
+		JPanel difficultyPanel = makeOptionPanel(difficultyDropdown, "Difficulty");
 		difficultyPanel.setPreferredSize(new Dimension(PANEL_WIDTH, DROPDOWN_HEIGHT));
 
 		orderDropdown = makeNewDropdown(QuestHelperConfig.QuestOrdering.values(), "orderListBy");
-		JPanel orderPanel = makeDropdownPanel(orderDropdown, "Ordering");
+		JPanel orderPanel = makeOptionPanel(orderDropdown, "Ordering");
 		orderPanel.setPreferredSize(new Dimension(PANEL_WIDTH, DROPDOWN_HEIGHT));
 
 		allDropdownSections.setBorder(new EmptyBorder(0, 0, 10, 0));
@@ -313,9 +327,13 @@ public class QuestHelperPanel extends PluginPanel
 		scrollableContainer.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
 		JPanel introDetailsPanel = new JPanel();
-		introDetailsPanel.setLayout(new BorderLayout());
-		introDetailsPanel.add(titlePanel, BorderLayout.NORTH);
-		introDetailsPanel.add(searchQuestsPanel, BorderLayout.CENTER);
+		introDetailsPanel.setLayout(new BoxLayout(introDetailsPanel, BoxLayout.PAGE_AXIS));
+		introDetailsPanel.add(titlePanel);
+		if (questHelperPlugin.isDeveloperMode())
+		{
+			introDetailsPanel.add(debugPanel);
+		}
+		introDetailsPanel.add(searchQuestsPanel);
 
 		add(introDetailsPanel, BorderLayout.NORTH);
 		add(scrollableContainer, BorderLayout.CENTER);
@@ -363,7 +381,7 @@ public class QuestHelperPanel extends PluginPanel
 		return dropdown;
 	}
 
-	private JPanel makeDropdownPanel(JComboBox dropdown, String name)
+	private JPanel makeOptionPanel(JComponent selector, String name)
 	{
 		// Filters
 		JLabel filterName = new JLabel(name);
@@ -373,7 +391,7 @@ public class QuestHelperPanel extends PluginPanel
 		filtersPanel.setLayout(new BorderLayout());
 		filtersPanel.setMinimumSize(new Dimension(PANEL_WIDTH, 0));
 		filtersPanel.add(filterName, BorderLayout.CENTER);
-		filtersPanel.add(dropdown, BorderLayout.EAST);
+		filtersPanel.add(selector, BorderLayout.EAST);
 
 		return filtersPanel;
 	}
@@ -403,6 +421,7 @@ public class QuestHelperPanel extends PluginPanel
 		questSelectPanels.forEach(questListPanel::remove);
 		questSelectPanels.clear();
 
+		debugCheckbox.setSelected(questHelperPlugin.getConfig().enableDebugVarbits());
 		filterDropdown.setSelectedItem(questHelperPlugin.getConfig().filterListBy());
 		difficultyDropdown.setSelectedItem(questHelperPlugin.getConfig().difficulty());
 		orderDropdown.setSelectedItem(questHelperPlugin.getConfig().orderListBy());

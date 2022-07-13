@@ -252,6 +252,11 @@ public class QuestHelperPlugin extends Plugin
 	@Override
 	protected void startUp() throws IOException
 	{
+		if (!isDeveloperMode())
+		{
+			configManager.setConfiguration("questhelper", "enableDebugVarbits", false);
+		}
+
 		bankTagService = new QuestHelperBankTagService(this, questBank);
 		bankTagsMain = new QuestBankTab(this);
 		bankTagsMain.startUp();
@@ -399,7 +404,7 @@ public class QuestHelperPlugin extends Plugin
 		});
 	}
 
-	private final Collection<String> configEvents = Arrays.asList("orderListBy", "filterListBy", "questDifficulty", "showCompletedQuests");
+	private final Collection<String> configEvents = Arrays.asList("orderListBy", "filterListBy", "questDifficulty", "showCompletedQuests", "enableDebugVarbits");
 
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)

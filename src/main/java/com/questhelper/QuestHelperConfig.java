@@ -171,6 +171,14 @@ public interface QuestHelperConfig extends Config
 	}
 
 	@ConfigItem(
+			keyName = "enableDebugVarbits",
+			name = "Enable debug varbits",
+			description = "Allow the client to set its own varbits to determine quest progression",
+			hidden = true
+	)
+	default boolean enableDebugVarbits() { return false; }
+
+	@ConfigItem(
 		keyName = "autostartQuests",
 		name = "Auto start helper",
 		description = "Automatically start the quest helper when you start a quest"
