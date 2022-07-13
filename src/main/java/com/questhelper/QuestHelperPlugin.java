@@ -105,6 +105,7 @@ import net.runelite.client.util.Text;
 @Slf4j
 public class QuestHelperPlugin extends Plugin
 {
+	public static ConfigManager staticConfigManager;
 	private static final int[] QUESTLIST_WIDGET_IDS = new int[]
 		{
 			QuestWidgets.QUEST_CONTAINER.getId()
@@ -256,6 +257,8 @@ public class QuestHelperPlugin extends Plugin
 		{
 			configManager.setConfiguration("questhelper", "enableDebugVarbits", false);
 		}
+
+		staticConfigManager = configManager;
 
 		bankTagService = new QuestHelperBankTagService(this, questBank);
 		bankTagsMain = new QuestBankTab(this);
@@ -660,7 +663,7 @@ public class QuestHelperPlugin extends Plugin
 
 		shutDownQuest(true);
 
-		if (!questHelper.isCompleted())
+		if (!questHelper.isCompleted() || questHelper.getConfig().enableDebugVarbits())
 		{
 			if (config.autoOpenSidebar())
 			{
