@@ -67,7 +67,7 @@ public class QuestSelectPanel extends JPanel
 		nameLabel.setForeground(color);
 		add(nameLabel, BorderLayout.CENTER);
 
-		if (questState != QuestState.FINISHED)
+		if (questState != QuestState.FINISHED || questHelper.getConfig().enableDebugVarbits())
 		{
 			JButton startButton = new JButton();
 			startButton.setIcon(START_ICON);

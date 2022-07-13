@@ -33,7 +33,7 @@ public interface QuestDetails
 {
 	public static boolean showCompletedQuests(QuestHelper quest)
 	{
-		return quest.getConfig().showCompletedQuests() && quest.isCompleted() || !quest.isCompleted();
+		return quest.getConfig().showCompletedQuests() && quest.isCompleted() || !quest.isCompleted() || quest.getConfig().enableDebugVarbits();
 	}
 
 	/**
