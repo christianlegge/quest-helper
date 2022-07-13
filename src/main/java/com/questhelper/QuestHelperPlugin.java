@@ -400,7 +400,7 @@ public class QuestHelperPlugin extends Plugin
 		}
 
 		clientThread.invokeLater(() -> {
-			if ((selectedQuest != null) && selectedQuest.isCompleted())
+			if ((selectedQuest != null) && (selectedQuest.isCompleted() && !getConfig().enableDebugVarbits()))
 			{
 				shutDownQuest(true);
 			}
