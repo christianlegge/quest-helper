@@ -53,6 +53,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -289,14 +290,17 @@ public class QuestHelperPanel extends PluginPanel
 		showMatchingQuests("");
 
 		// Debug
-		debugCheckbox = new JCheckBox();
+		debugCheckbox = new JCheckBox("Enable debug varbits");
+		debugCheckbox.setFocusable(false);
+		debugCheckbox.setForeground(Color.WHITE);
+		debugCheckbox.setHorizontalTextPosition(SwingConstants.LEFT);
+		debugCheckbox.setAlignmentX(Component.LEFT_ALIGNMENT);
+		debugCheckbox.setMinimumSize(new Dimension(PANEL_WIDTH, 0));
 		debugCheckbox.addItemListener(e ->
 		{
 			questHelperPlugin.getConfigManager().setConfiguration("questhelper", "enableDebugVarbits",
 					e.getStateChange() == ItemEvent.SELECTED);
 		});
-		JPanel debugPanel = makeOptionPanel(debugCheckbox, "Enable debug varbits");
-		debugPanel.setBorder(new EmptyBorder(0, 10, 0, 10));
 
 		// Filters
 		filterDropdown = makeNewDropdown(QuestHelperConfig.QuestFilter.displayFilters(), "filterListBy");
@@ -331,7 +335,7 @@ public class QuestHelperPanel extends PluginPanel
 		introDetailsPanel.add(titlePanel);
 		if (questHelperPlugin.isDeveloperMode())
 		{
-			introDetailsPanel.add(debugPanel);
+			introDetailsPanel.add(debugCheckbox);
 		}
 		introDetailsPanel.add(searchQuestsPanel);
 
@@ -481,6 +485,7 @@ public class QuestHelperPanel extends PluginPanel
 	public void addQuest(QuestHelper quest, boolean isActive)
 	{
 		questActive = true;
+		debugCheckbox.setVisible(false);
 		allDropdownSections.setVisible(false);
 		scrollableContainer.setViewportView(questOverviewWrapper);
 
@@ -514,6 +519,7 @@ public class QuestHelperPanel extends PluginPanel
 	public void removeQuest()
 	{
 		questActive = false;
+		debugCheckbox.setVisible(true);
 		allDropdownSections.setVisible(true);
 		scrollableContainer.setViewportView(questListWrapper);
 		questOverviewPanel.removeQuest();
