@@ -28,6 +28,7 @@ import com.questhelper.Icon;
 import com.questhelper.QuestHelperConfig;
 import com.questhelper.QuestHelperPlugin;
 import com.questhelper.QuestHelperQuest;
+import com.questhelper.questhelpers.BasicQuestHelper;
 import com.questhelper.questhelpers.QuestDetails;
 import com.questhelper.questhelpers.QuestHelper;
 import com.questhelper.steps.QuestStep;
@@ -74,9 +75,13 @@ import net.runelite.client.util.Text;
 @Slf4j
 public class QuestHelperPanel extends PluginPanel
 {
-	private final QuestOverviewPanel questOverviewPanel;
+	private QuestOverviewPanel questOverviewPanel = null;
 	private final FixedWidthPanel questOverviewWrapper = new FixedWidthPanel();
 
+	private JPanel debugVarbitPanel;
+	private JLabel debugVarbitLabel;
+	private JLabel debugVarValueLabel;
+	private JButton prevDebugVarButton, nextDebugVarButton;
 	private JPanel allQuestsCompletedPanel = new JPanel();
 	private JPanel searchQuestsPanel;
 
@@ -92,6 +97,7 @@ public class QuestHelperPanel extends PluginPanel
 //	private boolean settingsPanelActive = false;
 	private boolean questActive = false;
 
+	private List<Integer> questStepVars = Arrays.asList();
 	private final ArrayList<QuestSelectPanel> questSelectPanels = new ArrayList<>();
 
 	QuestHelperPlugin questHelperPlugin;
@@ -100,6 +106,8 @@ public class QuestHelperPanel extends PluginPanel
 	private static final ImageIcon GITHUB_ICON;
 	private static final ImageIcon PATREON_ICON;
 	private static final ImageIcon SETTINGS_ICON;
+	private static final ImageIcon NEXT_ICON;
+	private static final ImageIcon PREV_ICON;
 
 	static
 	{
@@ -107,6 +115,8 @@ public class QuestHelperPanel extends PluginPanel
 		GITHUB_ICON = Icon.GITHUB.getIcon(img -> ImageUtil.resizeImage(img, 16, 16));
 		PATREON_ICON = Icon.PATREON.getIcon(img -> ImageUtil.resizeImage(img, 16, 16));
 		SETTINGS_ICON = Icon.SETTINGS.getIcon(img -> ImageUtil.resizeImage(img, 16, 16));
+		NEXT_ICON = Icon.NEXT.getIcon();
+		PREV_ICON = Icon.PREV.getIcon();
 	}
 
 	public QuestHelperPanel(QuestHelperPlugin questHelperPlugin)
@@ -302,6 +312,87 @@ public class QuestHelperPanel extends PluginPanel
 					e.getStateChange() == ItemEvent.SELECTED);
 		});
 
+		debugVarbitLabel = new JLabel("Debug varbit");
+		debugVarbitLabel.setForeground(Color.WHITE);
+		prevDebugVarButton = new JButton();
+		prevDebugVarButton.setIcon(PREV_ICON);
+		nextDebugVarButton = new JButton();
+		nextDebugVarButton.setIcon(NEXT_ICON);
+		prevDebugVarButton.addActionListener(e ->
+		{
+			if (questOverviewPanel == null || questOverviewPanel.currentQuest == null)
+			{
+				return;
+			}
+			String debugVarKey = questOverviewPanel.currentQuest.getQuest().getDebugVarKey();
+			String debugVarConfigVal = questHelperPlugin.getConfigManager().getConfiguration("questhelpervars",
+					debugVarKey);
+			Integer debugVarVal = debugVarConfigVal == null ? 0 : Integer.parseInt(debugVarConfigVal);
+			for (int i = questStepVars.size() - 1; i >= 0; i--)
+			{
+				if (questStepVars.get(i) < debugVarVal)
+				{
+					debugVarVal = questStepVars.get(i);
+					break;
+				}
+			}
+			questHelperPlugin.getConfigManager().setConfiguration("questhelpervars", debugVarKey, debugVarVal);
+			nextDebugVarButton.setEnabled(true);
+			if (debugVarVal == questStepVars.get(0))
+			{
+				prevDebugVarButton.setEnabled(false);
+			}
+
+			debugVarValueLabel.setText(debugVarVal.toString());
+			questOverviewPanel.currentQuest.updateQuest();
+			repaint();
+			revalidate();
+		});
+		nextDebugVarButton.addActionListener(e ->
+		{
+			if (questOverviewPanel == null || questOverviewPanel.currentQuest == null)
+			{
+				return;
+			}
+			String debugVarKey = questOverviewPanel.currentQuest.getQuest().getDebugVarKey();
+			String debugVarConfigVal = questHelperPlugin.getConfigManager().getConfiguration("questhelpervars",
+					debugVarKey);
+			Integer debugVarVal = debugVarConfigVal == null ? 0 : Integer.parseInt(debugVarConfigVal);
+			for (Integer var : questStepVars)
+			{
+				if (var > debugVarVal)
+				{
+					debugVarVal = var;
+					break;
+				}
+			}
+			questHelperPlugin.getConfigManager().setConfiguration("questhelpervars", debugVarKey, debugVarVal);
+			prevDebugVarButton.setEnabled(true);
+			if (debugVarVal == questStepVars.get(questStepVars.size() - 1))
+			{
+				nextDebugVarButton.setEnabled(false);
+			}
+
+			debugVarValueLabel.setText(debugVarVal.toString());
+			questOverviewPanel.currentQuest.updateQuest();
+		});
+		prevDebugVarButton.setPreferredSize(new Dimension(35, 20));
+		nextDebugVarButton.setPreferredSize(new Dimension(35, 20));
+		debugVarValueLabel = new JLabel("0");
+		debugVarValueLabel.setMinimumSize(new Dimension(30, 0));
+		JPanel debugVarSubPanel = new JPanel();
+		debugVarSubPanel.setLayout(new BoxLayout(debugVarSubPanel, BoxLayout.LINE_AXIS));
+		debugVarSubPanel.add(prevDebugVarButton);
+		debugVarSubPanel.add(debugVarValueLabel);
+		debugVarSubPanel.add(nextDebugVarButton);
+		debugVarbitPanel = new JPanel();
+		debugVarbitPanel.setLayout(new BorderLayout(0, BORDER_OFFSET));
+		debugVarbitPanel.setBorder(new EmptyBorder(0, 10, 0, 10));
+		debugVarbitPanel.setMinimumSize(new Dimension(PANEL_WIDTH, 20));
+		debugVarbitPanel.add(debugVarbitLabel, BorderLayout.CENTER);
+		debugVarbitPanel.add(debugVarSubPanel, BorderLayout.LINE_END);
+		debugVarbitPanel.setVisible(false);
+
 		// Filters
 		filterDropdown = makeNewDropdown(QuestHelperConfig.QuestFilter.displayFilters(), "filterListBy");
 		JPanel filtersPanel = makeOptionPanel(filterDropdown, "Filters");
@@ -336,6 +427,7 @@ public class QuestHelperPanel extends PluginPanel
 		if (questHelperPlugin.isDeveloperMode())
 		{
 			introDetailsPanel.add(debugCheckbox);
+			introDetailsPanel.add(debugVarbitPanel);
 		}
 		introDetailsPanel.add(searchQuestsPanel);
 
@@ -490,6 +582,23 @@ public class QuestHelperPanel extends PluginPanel
 		scrollableContainer.setViewportView(questOverviewWrapper);
 
 		questOverviewPanel.addQuest(quest, isActive);
+		if (quest instanceof BasicQuestHelper)
+		{
+			debugVarbitPanel.setVisible(true);
+			questStepVars = ((BasicQuestHelper) quest).getStepVars();
+			debugVarValueLabel.setText(String.valueOf(quest.getVar()));
+			prevDebugVarButton.setEnabled(true);
+			nextDebugVarButton.setEnabled(true);
+			if (quest.getVar() == questStepVars.get(0))
+			{
+				prevDebugVarButton.setEnabled(false);
+			}
+			if (quest.getVar() == questStepVars.get(questStepVars.size() - 1))
+			{
+				nextDebugVarButton.setEnabled(false);
+			}
+
+		}
 
 		repaint();
 		revalidate();
@@ -519,6 +628,7 @@ public class QuestHelperPanel extends PluginPanel
 	public void removeQuest()
 	{
 		questActive = false;
+		debugVarbitPanel.setVisible(false);
 		debugCheckbox.setVisible(true);
 		allDropdownSections.setVisible(true);
 		scrollableContainer.setViewportView(questListWrapper);

@@ -29,6 +29,7 @@ import com.questhelper.requirements.Requirement;
 import com.questhelper.requirements.conditional.Conditions;
 import com.questhelper.requirements.util.LogicType;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import com.questhelper.panel.PanelDetails;
@@ -62,7 +63,7 @@ public abstract class BasicQuestHelper extends QuestHelper
 	@Override
 	public boolean updateQuest()
 	{
-		if (var < getVar())
+		if (var < getVar() || config.enableDebugVarbits())
 		{
 			var = getVar();
 			shutDownStep();
@@ -76,6 +77,14 @@ public abstract class BasicQuestHelper extends QuestHelper
 		List<PanelDetails> panelSteps = new ArrayList<>();
 		steps.forEach((id, step) -> panelSteps.add(new PanelDetails("", step)));
 		return panelSteps;
+	}
+
+	public List<Integer> getStepVars()
+	{
+		List<Integer> stepVars = new ArrayList<>();
+		steps.forEach((var, step) -> stepVars.add(var));
+		Collections.sort(stepVars);
+		return stepVars;
 	}
 
 	public abstract Map<Integer, QuestStep> loadSteps();

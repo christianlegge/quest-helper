@@ -513,17 +513,22 @@ public enum QuestHelperQuest
 		}
 	}
 
+	public String getDebugVarKey()
+	{
+		return this.name + "DebugVarbit";
+	}
+
 	public int getVar(Client client)
 	{
 		if (QuestHelperPlugin.staticConfigManager.getConfiguration("questhelper",
 				"enableDebugVarbits") == "true")
 		{
 			String debugVarbit = QuestHelperPlugin.staticConfigManager.getConfiguration("questhelpervars",
-					this.name);
+					getDebugVarKey());
 			if (debugVarbit == null)
 			{
 				QuestHelperPlugin.staticConfigManager.setConfiguration("questhelpervars",
-						this.name, 0);
+						getDebugVarKey(), 0);
 				return 0;
 			}
 			else
